@@ -1,0 +1,82 @@
+[package]
+name = "modulep"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+flume = "0.12"
+log = "0.4"
+thiserror = "2"
+
+[lints.clippy]
+if_not_else = { level = "allow", priority = 1 }
+missing_errors_doc = { level = "allow", priority = 1 }
+module_name_repetitions = { level = "allow", priority = 1 }
+redundant_closure_for_method_calls = { level = "allow", priority = 1 }
+struct_excessive_bools = { level = "allow", priority = 1 }
+struct_field_names = { level = "allow", priority = 1 }
+too_many_lines = { level = "allow", priority = 1 }
+
+all = "warn"
+pedantic = "warn"
+unwrap_used = "warn"
+
+[lints.rust]
+# Unstable
+# fuzzy_provenance_casts = "warn"
+# lossy_provenance_casts = "warn"
+# multiple_supertrait_upcastable = "warn"
+# must_not_suspend = "warn"
+# non_exhaustive_omitted_patterns = "warn"
+# resolving_to_items_shadowing_supertrait_items = "warn"
+# shadowing_supertrait_items = "warn"
+# unqualified_local_imports = "warn"
+
+linker_info = { level = "allow", priority = 1 }
+missing_docs = { level = "allow", priority = 1 }
+unnameable_types = { level = "allow", priority = 1 }
+unreachable_pub = { level = "allow", priority = 1 }
+unsafe_code = { level = "allow", priority = 1 }
+unused_results = { level = "allow", priority = 1 }
+
+ambiguous_negative_literals = "warn"
+closure_returning_async_block = "warn"
+deprecated_in_future = "warn"
+deprecated_safe = "warn"
+deref_into_dyn_supertrait = "warn"
+ffi_unwind_calls = "warn"
+future_incompatible = "warn"
+impl_trait_redundant_captures = "warn"
+keyword_idents = "warn"
+let_underscore = "warn"
+macro_use_extern_crate = "warn"
+meta_variable_misuse = "warn"
+missing_copy_implementations = "warn"
+missing_debug_implementations = "warn"
+non_ascii_idents = "warn"
+nonstandard_style = "warn"
+redundant_imports = "warn"
+redundant_lifetimes = "warn"
+refining_impl_trait = "warn"
+rust_2018_compatibility = "warn"
+rust_2018_idioms = "warn"
+rust_2021_compatibility = "warn"
+rust_2024_compatibility = "warn"
+single_use_lifetimes = "warn"
+trivial_casts = "warn"
+trivial_numeric_casts = "warn"
+unit_bindings = "warn"
+unknown_or_malformed_diagnostic_attributes = "warn"
+unstable_features = "warn"
+unused = "warn"
+unused_crate_dependencies = "warn"
+unused_import_braces = "warn"
+unused_lifetimes = "warn"
+unused_qualifications = "warn"
+variant_size_differences = "warn"
+warnings = "warn"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
