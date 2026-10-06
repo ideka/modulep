@@ -243,6 +243,8 @@ The `name` field will be shown in the addon's UI; try to keep it succinct. The c
 
 This folder will also contain your module's cache database (`cache.db`), created by the addon when your module is used. You may choose to prebuild this database with the addon and bundle it along with your module to give users a translation headstart. It's a sqlite database that uses a `WAL` journaling mode, so make sure you stop your module and the `db-shm` and `db-wal` files disappear before you copy it somewhere. A better tool for database prebuilding may be provided in the future.
 
+* **Note:** The exact schema of `cache.db` is considered an implementation detail and is not guaranteed to remain consistent from version to version, or even within the same protocol version. Modules that decide to read/write to this db directly do so at their own risk. However, the dabase's `user_version` is used to track the database schema version (for possible future migrations) and modules can check it as well.
+
 Your module may also use this folder to store a config file or anything else it may need. Avoid using the `module.toml` file itself for configuration though.
 
 
