@@ -81,6 +81,8 @@ struct Handshake {
 
   When your module is loaded, the user will be required to select this as their game's language, and your module will only receive text in this language for translation.
 
+  Be warned that changing your source language will naturally change the hash of every string, thus prompting a re-translation. For this reason it's recommended your module sticks to the same source lang, or uses a different `cache_key` for each (see below).
+
 * `result_version` is your own internal translation version.
 
   All translated text is automatically cached by the addon so your module never has to translate the same thing twice. However if at some point you improve the translation method of your module, you may bump this value, thereby effectively marking all previous translations that have the old value as "stale". Stale translations are still shown, but the addon will also request your module translate them again. At this point, the stale translation is swapped with the new one on screen, and in the cache.
@@ -89,7 +91,7 @@ struct Handshake {
 
   For example, your module may translate to two separate languages. In cases like that, ensure you reply with a different `cache_key` for each language, or the two languages would get mixed up in the cache.
 
-  The `cache_key` must be at most 32 bytes long. This will be written to cache with each piece of translated text, and there's no need to make it any longer. A two letter language code such as "jp" or "it" is often good enough.
+  The `cache_key` must be at most 32 bytes long. This will be written to cache with each piece of translated text, and there's no need to make it any longer. A two letter language code such as "ja" or "it" is often good enough.
 
 
 ### Addon Messages (stdin)
@@ -102,19 +104,24 @@ These are the messages the addon sends, which modules should be able to handle a
   struct Text {
     uint8_t kind; // always 0
     uint32_t id;
+    uint64_t hash;
     struct String text;
   };
   ```
 
-  A request to translate a piece of text. Has a `kind` of `0`, followed by the text ID in four bytes, followed by a string.
+  A request to translate a piece of text. `hash` is the hash for this string of text, which the addon uses to track text changes between game releases.
 
   The addon will send the module any and all pieces of text the game tries to show on screen or load. Ensure your module is always ready to read all messages and doesn't let the buffer fill up too much.
 
-  The addon will not send any text in a different language than requested in the `Handshake`. The addon will also never send text that is currently waiting a response, and it won't send any text that has already been translated and cached (unless judged stale as per `result_version`), so do not bother deduping the requests.
+  The addon will not send any text in a different language than requested in the `Handshake`. The addon will also never send text that is currently waiting a response, and it won't send any text that has already been translated and cached (unless judged stale as per `result_version` or by its `hash`), so do not bother deduping the requests.
 
   The game has some text entries that are empty as well, but the addon will never send those for translation.
 
   The addon will not batch these and instead send them as they come; however, these messages still tend to come in bursts, so it's recommended modules collect many at a time to translate in a batch.
+
+  * **Text Hashing:** Hashing is done directly on the UTF-8 bytes exactly as sent (any null terminator bytes already pre-stripped), using XXH3-64 (not to be confused with XXH64) with a default seed/secret.
+
+  A cached translation with a hash that doesn't match the source text's is considered stale. It will still be shown, but a new translation will be requested as well (with the new text).
 
 Currently, this is the only message type the addon will send. In the future, other types may be added. Thus modules should make sure to ignore unknown messages properly by consuming them using their lengths as described earlier.
 
@@ -129,11 +136,14 @@ These are messages your module must write to stdout to communicate with the addo
   struct Text {
     uint8_t kind; // always 0
     uint32_t id;
+    uint64_t hash;
     struct String text;
   };
   ```
 
-  Same as the addon message of the same name, but this time around containing the translated text. Ideally you'd write a whole batch of these and then flush them all at once.
+  Same as the addon message of the same name, but this time around containing the translated text. Ideally you'd write a whole batch of these and then flush them all at once. `hash` must be the hash of the source text (which the addon sends in all text requests); sending the wrong hash means the addon will think the translation is out of date next time it encounters it, and request another translation.
+
+  If your module somehow has translations known ahead of time, it can safely send them even if they were not requested. Ensure you specify a correct ID and hash in this case (see the section above on text hashing), and ensure you keep track of which ones were already sent to avoid re-sending everything on every startup as well.
 
 * `TextCancel` Message
 

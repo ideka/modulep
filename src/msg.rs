@@ -37,6 +37,10 @@ impl<'a> Cursor<'a> {
         Ok(u32::from_le_bytes(*self.take_const()?))
     }
 
+    fn u64(&mut self) -> ReadResult<u64> {
+        Ok(u64::from_le_bytes(*self.take_const()?))
+    }
+
     fn string(&mut self) -> ReadResult<String> {
         let len = self.u16()? as usize;
         String::from_utf8(self.take(len)?.to_vec()).map_err(|_| ReadError::InvalidUtf8String)
@@ -108,26 +112,27 @@ pub trait Message: Sized {
     }
 }
 
-fn put_text(buf: &mut Vec<u8>, id: u32, text: &str) -> WriteResult<()> {
+fn put_text(buf: &mut Vec<u8>, id: u32, hash: u64, text: &str) -> WriteResult<()> {
     buf.extend_from_slice(&id.to_le_bytes());
+    buf.extend_from_slice(&hash.to_le_bytes());
     put_string(buf, text)
 }
 
-fn get_text(c: &mut Cursor<'_>) -> ReadResult<(u32, String)> {
-    Ok((c.u32()?, c.string()?))
+fn get_text(c: &mut Cursor<'_>) -> ReadResult<(u32, u64, String)> {
+    Ok((c.u32()?, c.u64()?, c.string()?))
 }
 
 #[derive(Debug)]
 pub enum AddonMessage {
-    Text((u32, String)),
+    Text((u32, u64, String)),
 }
 
 impl Message for AddonMessage {
     fn encode(&self, buf: &mut Vec<u8>) -> WriteResult<()> {
         match self {
-            Self::Text((id, t)) => {
+            Self::Text((id, hash, t)) => {
                 buf.push(0);
-                put_text(buf, *id, t)
+                put_text(buf, *id, *hash, t)
             }
         }
     }
@@ -142,16 +147,16 @@ impl Message for AddonMessage {
 
 #[derive(Debug)]
 pub enum ModuleMessage {
-    Text((u32, String)),
+    Text((u32, u64, String)),
     TextCancel(u32),
 }
 
 impl Message for ModuleMessage {
     fn encode(&self, buf: &mut Vec<u8>) -> WriteResult<()> {
         match self {
-            Self::Text((id, t)) => {
+            Self::Text((id, hash, t)) => {
                 buf.push(0);
-                put_text(buf, *id, t)
+                put_text(buf, *id, *hash, t)
             }
             Self::TextCancel(id) => {
                 buf.push(1);
