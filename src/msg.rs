@@ -184,7 +184,7 @@ pub struct Handshake {
 }
 
 impl Handshake {
-    const PROTOCOL: u32 = 1;
+    const PROTOCOL: u32 = 2;
     const CACHE_KEY_MAX_LEN: usize = 32;
 
     pub fn new(source_lang: i32, result_version: u32, cache_key: Arc<str>) -> WriteResult<Self> {

@@ -333,3 +333,10 @@ Many strings in the game are so trivial as to not require any translation at all
 * A string may be a double parenthesized number such as `((12345))`.
 
 * A string may only contain `%numX%` and/or `%strX%` templates.
+
+## Version History
+
+`modulep` | Addon | Protocol | Retrocompatible?
+-:|-:|:-:|:-
+v0.2.0 | v0.2.0 | 2 | ❌
+v0.1.0 | v0.1.0 | 1 | N/A
